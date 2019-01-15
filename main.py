@@ -92,7 +92,7 @@ def packMap(dest,folder,mode=-1,keys=0):
                     addAll(assets,getDesignAssets(lines))
                     packAssets(dest,assets,folder)
         except Exception as e:
-            errors.append("Error while reading \""+folder+file+"\" ("+e+")")
+            errors.append("Error while reading \""+folder+file+"\" ("+str(e)+")")
 
 folders = glob(src+"/*/")
 total = len(folders)

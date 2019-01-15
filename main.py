@@ -3,6 +3,8 @@ from glob import glob
 from os.path import basename
 import zipfile
 
+errors = []
+
 src = ""
 while(not os.path.isdir(src)):
     src = input("Source Folder : ")
@@ -37,10 +39,16 @@ def getInfo(lines, keyword):
             return line.split(":")[1]
 
 def getMode(lines):
-    return int(getInfo(lines,"Mode"))
+    try:
+        return int(getInfo(lines,"Mode"))
+    except:
+        return -1
 
 def getCS(lines):
-    return int(getInfo(lines,"CircleSize"))
+    try:
+        return int(getInfo(lines,"CircleSize"))
+    except:
+        return -1
 
 def getAudio(lines):
     return getInfo(lines,"AudioFilename")
@@ -69,19 +77,22 @@ def packMap(dest,folder,mode=-1,keys=0):
     os.chdir(folder)
     assets = set()
     for file in glob("*.osu"):
-        f = open(folder+file,'r', encoding="utf-8")
-        lines = f.readlines()
-        f.close()
-        if(-1 == mode or getMode(lines) == mode):
-            checks = True
-            if(3 == mode and 0 != keys and keys!= getCS(lines)):
-                checks = False
-            
-            if checks:
-                assets.add(getAudio(lines))
-                assets.add(file)
-                addAll(assets,getDesignAssets(lines))
-                packAssets(dest,assets,folder)
+        try:
+            f = open(folder+file,'r', encoding="utf-8")
+            lines = f.readlines()
+            f.close()
+            if(-1 == mode or getMode(lines) == mode):
+                checks = True
+                if(3 == mode and 0 != keys and keys!= getCS(lines)):
+                    checks = False
+                
+                if checks:
+                    assets.add(getAudio(lines))
+                    assets.add(file)
+                    addAll(assets,getDesignAssets(lines))
+                    packAssets(dest,assets,folder)
+        except Exception as e:
+            errors.append("Error while reading \""+folder+file+"\" ("+e+")")
 
 folders = glob(src+"/*/")
 total = len(folders)
@@ -90,3 +101,9 @@ for dir in folders:
     i+=1
     print(str(i)+"/"+str(total))
     packMap(os.path.join(dst,basename(dir[:-1])+".osz"),dir,3,4)
+
+if(len(errors) > 0):
+    c = input("Scan ended with "+str(len(errors))+" errors, display them ? (y/n)")
+    if(c == "y" or c == "Y"):
+        for error in errors:
+            print(error)
